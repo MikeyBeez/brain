@@ -5,10 +5,11 @@
  * Provides transparent logging of all operations.
  */
 
+import { Tool, ToolResponse } from '../modules/types.js';
 import { executionModule } from '../modules/execution/index.js';
 import { logger } from '../core/database.js';
 
-export const brainExecuteTool = {
+export const brainExecuteTool: Tool = {
   name: 'brain_execute',
   description: 'Execute Python code with full system access. Returns stdout, stderr, and execution time.',
   inputSchema: {
@@ -30,7 +31,7 @@ export const brainExecuteTool = {
     required: ['code']
   },
 
-  async execute(args) {
+  async *execute(args: any): AsyncGenerator<ToolResponse> {
     const { code, description, working_directory } = args;
 
     logger.info('Brain Execute requested:', {
@@ -38,6 +39,11 @@ export const brainExecuteTool = {
       workingDirectory: working_directory || 'default',
       codePreview: code.substring(0, 100) + (code.length > 100 ? '...' : '')
     });
+
+    yield { 
+      type: 'text', 
+      text: `🐍 Executing Python code: ${description || 'No description provided'}` 
+    };
 
     try {
       // If working directory specified, prepend cd command
@@ -51,16 +57,35 @@ export const brainExecuteTool = {
         description
       });
 
-      // Add description to result for transparency
-      return {
-        ...result,
-        description: description || 'No description provided',
-        code_executed: code
+      // Yield output
+      if (result.stdout) {
+        yield { type: 'text', text: '\n📤 Output:' };
+        yield { type: 'text', text: result.stdout };
+      }
+
+      if (result.stderr) {
+        yield { type: 'text', text: '\n⚠️ Errors:' };
+        yield { type: 'text', text: result.stderr };
+      }
+
+      yield { 
+        type: 'text', 
+        text: `\n⏱️ Execution time: ${result.executionTime}` 
       };
 
-    } catch (error) {
+      // Log the execution details
+      logger.info('Execution completed', {
+        hasOutput: !!result.stdout,
+        hasErrors: !!result.stderr,
+        executionTime: result.executionTime
+      });
+
+    } catch (error: any) {
       logger.error('Brain Execute failed:', error);
-      throw error;
+      yield { 
+        type: 'text', 
+        text: `❌ Execution failed: ${error.message}` 
+      };
     }
   }
 };

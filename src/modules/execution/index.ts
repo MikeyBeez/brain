@@ -5,20 +5,34 @@
  * Maintains a persistent Python REPL for immediate feedback.
  */
 
-import { spawn } from 'child_process';
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import { logger } from '../../core/database.js';
 import { EventEmitter } from 'events';
 
-class PythonExecutor extends EventEmitter {
-  constructor() {
-    super();
-    this.process = null;
-    this.isReady = false;
-    this.executionQueue = [];
-    this.currentExecution = null;
-  }
+interface Execution {
+  code: string;
+  stdout: string;
+  stderr: string;
+  startTime: number;
+  resolve: (result: ExecutionResult) => void;
+  reject: (error: Error) => void;
+  isInternal: boolean;
+}
 
-  initialize() {
+interface ExecutionResult {
+  stdout: string;
+  stderr: string;
+  executionTime: string;
+  timestamp: string;
+}
+
+class PythonExecutor extends EventEmitter {
+  private process: ChildProcessWithoutNullStreams | null = null;
+  private isReady: boolean = false;
+  private executionQueue: Execution[] = [];
+  private currentExecution: Execution | null = null;
+
+  initialize(): void {
     logger.info('Initializing Python executor...');
     
     // Start Python in interactive mode with unbuffered output
@@ -27,13 +41,13 @@ class PythonExecutor extends EventEmitter {
     });
 
     // Handle process output
-    this.process.stdout.on('data', (data) => {
+    this.process.stdout.on('data', (data: Buffer) => {
       if (this.currentExecution) {
         this.currentExecution.stdout += data.toString();
       }
     });
 
-    this.process.stderr.on('data', (data) => {
+    this.process.stderr.on('data', (data: Buffer) => {
       const output = data.toString();
       // Python interactive mode sends prompt to stderr
       if (output.includes('>>>') || output.includes('...')) {
@@ -47,14 +61,14 @@ class PythonExecutor extends EventEmitter {
       }
     });
 
-    this.process.on('error', (error) => {
+    this.process.on('error', (error: Error) => {
       logger.error('Python process error:', error);
       if (this.currentExecution) {
         this.currentExecution.reject(error);
       }
     });
 
-    this.process.on('exit', (code) => {
+    this.process.on('exit', (code: number | null) => {
       logger.error(`Python process exited with code ${code}`);
       this.isReady = false;
       // Restart the process
@@ -65,7 +79,7 @@ class PythonExecutor extends EventEmitter {
     this.injectBrainContext();
   }
 
-  async injectBrainContext() {
+  private async injectBrainContext(): Promise<void> {
     // Wait for Python to be ready
     while (!this.isReady) {
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -123,9 +137,9 @@ print(f"Database path: {BRAIN_DB_PATH}")
     await this.execute(setupCode, true);
   }
 
-  async execute(code, isInternal = false) {
+  async execute(code: string, isInternal: boolean = false): Promise<ExecutionResult> {
     return new Promise((resolve, reject) => {
-      const execution = {
+      const execution: Execution = {
         code,
         stdout: '',
         stderr: '',
@@ -140,12 +154,12 @@ print(f"Database path: {BRAIN_DB_PATH}")
     });
   }
 
-  processQueue() {
+  private processQueue(): void {
     if (!this.isReady || this.currentExecution || this.executionQueue.length === 0) {
       return;
     }
 
-    this.currentExecution = this.executionQueue.shift();
+    this.currentExecution = this.executionQueue.shift()!;
     const { code, startTime } = this.currentExecution;
 
     // Clear output buffers
@@ -153,14 +167,14 @@ print(f"Database path: {BRAIN_DB_PATH}")
     this.currentExecution.stderr = '';
 
     // Send code to Python
-    this.process.stdin.write(code + '\n');
+    this.process!.stdin.write(code + '\n');
 
     // Set up completion detection
     const completeTimer = setInterval(() => {
       // Check if we've received a prompt indicating completion
-      const output = this.currentExecution.stdout + this.currentExecution.stderr;
+      const output = this.currentExecution!.stdout + this.currentExecution!.stderr;
       if (output.includes('>>>') || 
-          (this.currentExecution.stderr.includes('>>>') && 
+          (this.currentExecution!.stderr.includes('>>>') && 
            Date.now() - startTime > 100)) {
         clearInterval(completeTimer);
         this.completeExecution();
@@ -174,13 +188,13 @@ print(f"Database path: {BRAIN_DB_PATH}")
     }, 50);
   }
 
-  completeExecution() {
+  private completeExecution(): void {
     if (!this.currentExecution) return;
 
     const { stdout, stderr, startTime, resolve, isInternal } = this.currentExecution;
     const executionTime = Date.now() - startTime;
 
-    const result = {
+    const result: ExecutionResult = {
       stdout: stdout.trim(),
       stderr: stderr.trim(),
       executionTime: `${executionTime}ms`,
@@ -196,7 +210,7 @@ print(f"Database path: {BRAIN_DB_PATH}")
     this.processQueue();
   }
 
-  shutdown() {
+  shutdown(): void {
     if (this.process) {
       this.process.kill();
       this.process = null;
@@ -205,16 +219,16 @@ print(f"Database path: {BRAIN_DB_PATH}")
 }
 
 // Create singleton instance
-const executionModule = {
+export const executionModule = {
   name: 'execution',
-  executor: null,
+  executor: null as PythonExecutor | null,
 
-  initialize() {
+  initialize(): void {
     this.executor = new PythonExecutor();
     this.executor.initialize();
   },
 
-  async execute(code, options = {}) {
+  async execute(code: string, options: { description?: string } = {}): Promise<ExecutionResult> {
     if (!this.executor) {
       throw new Error('Execution module not initialized');
     }
@@ -236,11 +250,9 @@ const executionModule = {
     return result;
   },
 
-  shutdown() {
+  shutdown(): void {
     if (this.executor) {
       this.executor.shutdown();
     }
   }
 };
-
-export { executionModule };
