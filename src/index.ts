@@ -1,0 +1,69 @@
+/**
+ * Brain MCP Server Entry Point
+ * 
+ * Initializes all modules and starts the MCP server.
+ */
+
+import { brainServer } from './core/server.js';
+import { memoryModule } from './modules/memory/index.js';
+import { sessionsModule } from './modules/sessions/index.js';
+import { executionModule } from './modules/execution/index.js';
+import { brainInitTool } from './tools/init.js';
+import { brainRememberTool } from './tools/remember.js';
+import { brainRecallTool } from './tools/recall.js';
+import { brainStatusTool } from './tools/status.js';
+import { brainExecuteTool } from './tools/execute.js';
+import { logger } from './core/database.js';
+
+async function main() {
+  try {
+    logger.info('Starting Brain MCP Server...');
+    
+    // Register modules
+    brainServer.registerModule('memory', memoryModule);
+    brainServer.registerModule('sessions', sessionsModule);
+    brainServer.registerModule('execution', executionModule);
+    
+    // Register tools
+    brainServer.registerTool(brainInitTool);
+    brainServer.registerTool(brainRememberTool);
+    brainServer.registerTool(brainRecallTool);
+    brainServer.registerTool(brainStatusTool);
+    brainServer.registerTool(brainExecuteTool);
+    
+    // Initialize modules
+    logger.info('Initializing modules...');
+    memoryModule.initialize();
+    sessionsModule.initialize();
+    executionModule.initialize();
+    
+    // Start server
+    await brainServer.start();
+    
+    logger.info('Brain MCP Server is ready!');
+    logger.info('Available tools:');
+    logger.info('  - brain_init - Initialize session and load context');
+    logger.info('  - brain_remember - Store information in memory');
+    logger.info('  - brain_recall - Search through memories');
+    logger.info('  - brain_status - Check system status');
+    logger.info('  - brain_execute - Execute Python code with full system access');
+    
+  } catch (error) {
+    logger.error('Failed to start Brain MCP Server', error);
+    process.exit(1);
+  }
+}
+
+// Handle process termination
+process.on('SIGINT', () => {
+  logger.info('Shutting down Brain MCP Server...');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  logger.info('Shutting down Brain MCP Server...');
+  process.exit(0);
+});
+
+// Start the server
+main();

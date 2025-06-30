@@ -1,0 +1,4 @@
+{"execution_id": "exec-2025-06-30-002", "timestamp": "2025-06-30T08:35:00Z", "type": "start", "language": "javascript", "status": "running", "message": "Starting JavaScript execution"}
+{"execution_id": "exec-2025-06-30-002", "timestamp": "2025-06-30T08:35:01Z", "type": "code", "message": "Executing code", "code": "console.log('Testing Brain execution');\\nconst data = [1, 2, 3, 4, 5];\\nconst sum = data.reduce((a, b) => a + b, 0);\\nconsole.log('Sum:', sum);"}
+{"execution_id": "exec-2025-06-30-002", "timestamp": "2025-06-30T08:35:02Z", "type": "output", "message": "Output received", "output": "Testing Brain execution\\nSum: 15"}
+{"execution_id": "exec-2025-06-30-002", "timestamp": "2025-06-30T08:35:03Z", "type": "complete", "status": "completed", "message": "Execution completed successfully"}

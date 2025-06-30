@@ -1,0 +1,4 @@
+{"execution_id": "exec-2025-06-30-001", "timestamp": "2025-06-30T08:30:00Z", "type": "start", "language": "python", "status": "running", "message": "Starting Python execution"}
+{"execution_id": "exec-2025-06-30-001", "timestamp": "2025-06-30T08:30:01Z", "type": "code", "message": "Executing code", "code": "print('Hello from Brain!')\\nresult = 2 + 2\\nprint(f'Result: {result}')"}
+{"execution_id": "exec-2025-06-30-001", "timestamp": "2025-06-30T08:30:02Z", "type": "output", "message": "Output received", "output": "Hello from Brain!\\nResult: 4"}
+{"execution_id": "exec-2025-06-30-001", "timestamp": "2025-06-30T08:30:03Z", "type": "complete", "status": "completed", "message": "Execution completed successfully"}
