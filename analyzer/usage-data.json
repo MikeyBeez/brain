@@ -1,0 +1,76 @@
+{
+  "startTime": "2025-06-30T20:00:08.778Z",
+  "files": {
+    "fs": {
+      "required": 10,
+      "exports": {
+        "existsSync": 4,
+        "stat": 2,
+        "accessSync": 6,
+        "createWriteStream": 2
+      }
+    },
+    "path": {
+      "required": 10,
+      "exports": {
+        "basename": 4,
+        "dirname": 6,
+        "extname": 4,
+        "join": 18
+      }
+    },
+    "util": {
+      "required": 18,
+      "exports": {
+        "promisify": 2,
+        "inherits": 14,
+        "debuglog": 2,
+        "deprecate": 2
+      }
+    },
+    "os": {
+      "required": 10,
+      "exports": {}
+    },
+    "stream": {
+      "required": 4,
+      "exports": {}
+    },
+    "events": {
+      "required": 2,
+      "exports": {}
+    },
+    "buffer": {
+      "required": 6,
+      "exports": {}
+    },
+    "string_decoder": {
+      "required": 2,
+      "exports": {}
+    },
+    "tty": {
+      "required": 2,
+      "exports": {
+        "isatty": 2
+      }
+    },
+    "zlib": {
+      "required": 2,
+      "exports": {}
+    }
+  },
+  "modules": {
+    "fs": 10,
+    "path": 10,
+    "util": 18,
+    "os": 10,
+    "stream": 4,
+    "events": 2,
+    "buffer": 6,
+    "string_decoder": 2,
+    "tty": 2,
+    "zlib": 2
+  },
+  "uncaughtFiles": [],
+  "errors": []
+}

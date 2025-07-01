@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Code Usage Analyzer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status.error {
+            background: #fee;
+            border: 1px solid #fcc;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .metric .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+        }
+        .metric .label {
+            color: #999;
+            font-size: 14px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+        .list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .list li:last-child {
+            border-bottom: none;
+        }
+        .count {
+            float: right;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .unused {
+            color: #d00;
+        }
+        .hot {
+            color: #080;
+        }
+        button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0066dd;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Brain Code Usage Analyzer</h1>
+        
+        <div class="status" id="status">
+            Connecting to analyzer server...
+        </div>
+        
+        <div class="controls">
+            <button onclick="refresh()">🔄 Refresh</button>
+            <button onclick="loadUnused()">🗑️ Find Unused Code</button>
+        </div>
+        
+        <div class="metrics" id="metrics"></div>
+        
+        <div class="section">
+            <h2>🔥 Hot Files (Most Used)</h2>
+            <ul class="list" id="hotFiles"></ul>
+        </div>
+        
+        <div class="section">
+            <h2>📊 Top Functions</h2>
+            <ul class="list" id="topFunctions"></ul>
+        </div>
+        
+        <div class="section" id="unusedSection" style="display: none;">
+            <h2>⚠️ Unused Files</h2>
+            <ul class="list" id="unusedFiles"></ul>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:9997';
+        
+        async function refresh() {
+            try {
+                // Check health first
+                const healthRes = await fetch(`${API_BASE}/health`);
+                if (!healthRes.ok) throw new Error('Server not responding');
+                
+                const health = await healthRes.json();
+                
+                // Get report
+                const reportRes = await fetch(`${API_BASE}/report`);
+                const report = await reportRes.json();
+                
+                // Update status
+                document.getElementById('status').innerHTML = `
+                    ✅ Connected to analyzer | 
+                    Tracking ${health.trackedFiles} files | 
+                    Started: ${new Date(report.summary.startTime).toLocaleString()}
+                `;
+                document.getElementById('status').className = 'status';
+                
+                // Update metrics
+                const metricsHtml = `
+                    <div class="metric">
+                        <h3>Files Tracked</h3>
+                        <div class="value">${report.summary.totalFilesTracked}</div>
+                        <div class="label">Total files analyzed</div>
+                    </div>
+                    <div class="metric">
+                        <h3>Actually Used</h3>
+                        <div class="value">${report.summary.filesActuallyUsed}</div>
+                        <div class="label">${report.summary.percentageUsed} of tracked</div>
+                    </div>
+                    <div class="metric">
+                        <h3>Cold Files</h3>
+                        <div class="value">${report.summary.coldFiles}</div>
+                        <div class="label">Required ≤ 2 times</div>
+                    </div>
+                    <div class="metric">
+                        <h3>Errors</h3>
+                        <div class="value">${report.summary.errors}</div>
+                        <div class="label">Tracking errors</div>
+                    </div>
+                `;
+                document.getElementById('metrics').innerHTML = metricsHtml;
+                
+                // Update hot files
+                const hotFilesHtml = report.hotFiles.map(f => `
+                    <li>
+                        <span class="hot">${f.file}</span>
+                        <span class="count">${f.required} requires</span>
+                    </li>
+                `).join('');
+                document.getElementById('hotFiles').innerHTML = hotFilesHtml || '<li>No data yet</li>';
+                
+                // Update top functions
+                const topFunctionsHtml = report.topFunctions.map(f => `
+                    <li>
+                        ${f.file} → <strong>${f.function}()</strong>
+                        <span class="count">${f.calls} calls</span>
+                    </li>
+                `).join('');
+                document.getElementById('topFunctions').innerHTML = topFunctionsHtml || '<li>No data yet</li>';
+                
+            } catch (err) {
+                document.getElementById('status').innerHTML = `
+                    ❌ Error: ${err.message}<br>
+                    Make sure the analyzer server is running on port ${API_BASE.split(':')[2]}
+                `;
+                document.getElementById('status').className = 'status error';
+            }
+        }
+        
+        async function loadUnused() {
+            try {
+                const res = await fetch(`${API_BASE}/unused`);
+                const data = await res.json();
+                
+                document.getElementById('unusedSection').style.display = 'block';
+                
+                const unusedHtml = data.unusedFiles.slice(0, 50).map(f => `
+                    <li class="unused">${f}</li>
+                `).join('');
+                
+                document.getElementById('unusedFiles').innerHTML = `
+                    <li><strong>${data.summary.unusedFiles} files (${data.summary.percentageUnused}) never required</strong></li>
+                    <li>Potential savings: ${data.summary.potentialSavings}</li>
+                    <li>&nbsp;</li>
+                    ${unusedHtml}
+                    ${data.unusedFiles.length > 50 ? '<li>... and more</li>' : ''}
+                `;
+                
+            } catch (err) {
+                alert('Error loading unused files: ' + err.message);
+            }
+        }
+        
+        // Auto-refresh every 5 seconds
+        setInterval(refresh, 5000);
+        
+        // Initial load
+        refresh();
+    </script>
+</body>
+</html>
