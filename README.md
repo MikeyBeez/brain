@@ -2,6 +2,10 @@
 
 Brain is a comprehensive cognitive system that provides Claude with persistent memory, code execution, and learning capabilities through the Model Context Protocol (MCP).
 
+## Documentation
+
+This README serves as the primary documentation for the Brain system. The `docs/` directory contains the mise en place (preparation materials) that were assembled for vibe coding this repository, including engineering specifications, implementation guides, and technical specs that guided the development process.
+
 ## Features
 
 - **Persistent Memory**: Store and recall information across conversations
@@ -147,10 +151,6 @@ To get started:
 1. Run `brain:init` to initialize your session
 2. Use `brain:remember` to store any preferences or context
 3. Use `brain:recall` to search your memories
-
-## Contributing
-
-See [ENGINEERING_SPEC.md](docs/ENGINEERING_SPEC.md) for detailed technical specifications.
 
 ## License
 
