@@ -7,6 +7,9 @@
  * with correct error handling and environment setup.
  */
 
+// Enable usage tracking (must be first import)
+import './analyzer/instrumentation.js';
+
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync, mkdirSync } from 'fs';

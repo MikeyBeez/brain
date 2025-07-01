@@ -21,7 +21,7 @@ from urllib.parse import urlparse, parse_qs
 import threading
 import time
 
-LOG_DIR = "/Users/bard/Code/brain/data/logs/execution"
+LOG_DIR = "/Users/bard/Code/brain/logs/execution"
 PORT = 9998
 
 class LogAPIHandler(BaseHTTPRequestHandler):

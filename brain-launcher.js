@@ -1,9 +1,10 @@
 #!/Users/bard/Code/brain/node-wrapper.sh
 
 /**
- * Brain MCP Server Launcher with Output Redirection
+ * Brain MCP Server Launcher with Output Redirection and Monitor
  * 
  * Captures build output to a file and only shows errors on stderr
+ * Also starts the Execution Monitor server automatically
  */
 
 import { spawn } from 'child_process';
@@ -34,8 +35,34 @@ if (!existsSync(logsDir)) {
   mkdirSync(logsDir, { recursive: true });
 }
 
+// Start the Execution Monitor server
+function startExecutionMonitor() {
+  const monitorPath = join(projectRoot, 'api', 'serve-monitor.py');
+  
+  if (existsSync(monitorPath)) {
+    console.error('Brain: Starting Execution Monitor on port 9996...');
+    
+    const monitorProcess = spawn('python3', [monitorPath], {
+      cwd: join(projectRoot, 'api'),
+      detached: true,
+      stdio: ['ignore', 'ignore', 'ignore']
+    });
+    
+    // Don't wait for monitor, let it run independently
+    monitorProcess.unref();
+    
+    // Log the monitor URL after a short delay
+    setTimeout(() => {
+      console.error('Brain: Execution Monitor available at http://localhost:9996/execution-monitor.html');
+    }, 1000);
+  }
+}
+
 // Main entry point
 async function main() {
+  // Start the monitor early
+  startExecutionMonitor();
+  
   // Check if better-sqlite3 needs rebuilding
   const sqlite3Path = join(projectRoot, 'node_modules/better-sqlite3/build/Release/better_sqlite3.node');
   let needsRebuild = false;
@@ -173,3 +200,15 @@ function startServer() {
     process.exit(1);
   }
 }
+
+// Handle process termination
+process.on('SIGINT', () => {
+  console.error('\nBrain: Shutting down...');
+  // The monitor will stop on its own
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.error('\nBrain: Shutting down...');
+  process.exit(0);
+});

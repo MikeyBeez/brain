@@ -1,0 +1,4 @@
+{"execution_id": "exec-2025-06-30-TEST", "timestamp": "2025-06-30T13:15:18.483063Z", "type": "start", "language": "python", "status": "running", "message": "Manual test execution"}
+{"execution_id": "exec-2025-06-30-TEST", "timestamp": "2025-06-30T13:15:18.483098Z", "type": "code", "message": "Testing manual log creation", "code": "print('If you see this in Monitex, the logging system works!')"}
+{"execution_id": "exec-2025-06-30-TEST", "timestamp": "2025-06-30T13:15:18.483099Z", "type": "output", "message": "Output received", "output": "If you see this in Monitex, the logging system works!"}
+{"execution_id": "exec-2025-06-30-TEST", "timestamp": "2025-06-30T13:15:18.483100Z", "type": "complete", "status": "completed", "message": "Test completed successfully"}
