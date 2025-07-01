@@ -2,9 +2,15 @@
 
 Brain is a comprehensive cognitive system that provides Claude with persistent memory, code execution, and learning capabilities through the Model Context Protocol (MCP).
 
-## Documentation
+## Documentation Philosophy
 
-This README serves as the primary documentation for the Brain system. The `docs/` directory contains the mise en place (preparation materials) that were assembled for vibe coding this repository, including engineering specifications, implementation guides, and technical specs that guided the development process.
+This system is designed for Claude, not humans. The real documentation lives in the Brain itself - in the stored memories, patterns, and knowledge that Claude accumulates through use. The `docs/` directory contains the mise en place (preparation materials) that were assembled during the initial vibe coding of this repository, but ongoing documentation is maintained through the Brain's memory system.
+
+To understand how Brain works, Claude should:
+1. Run `brain:brain_init` to load context
+2. Use `brain:brain_recall "index"` to see stored knowledge
+3. Use `brain:brain_recall "user manual"` for usage patterns
+4. The system self-documents through use
 
 ## Features
 
