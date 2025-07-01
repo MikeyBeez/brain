@@ -8,6 +8,8 @@ Brain is a comprehensive cognitive system that provides Claude with persistent m
 - **Memory Tiering**: Automatic hot/warm/cold storage management
 - **Session Management**: Maintain context within and across sessions
 - **Full-Text Search**: Powerful search through all stored memories
+- **Code Execution**: Execute Python and shell commands with full transparency
+- **Execution Monitoring**: Real-time visibility into code execution via Monitex
 - **User Preferences**: Personalized experience based on stored preferences
 - **Project Awareness**: Track and maintain active project context
 
@@ -70,6 +72,19 @@ npm run dev
   - Memory tier distribution
   - Session information
 
+- **brain:execute** - Execute Python and shell code
+  - Full Python execution environment with persistent state
+  - Shell command execution via subprocess
+  - Automatic language detection
+  - Transparent logging of all executions
+  - Integration with Monitex for real-time monitoring
+  - Examples:
+    ```
+    brain:execute "print('Hello from Brain!')"
+    brain:execute "ls -la" language="shell"
+    brain:execute "import pandas as pd; df = pd.DataFrame({'a': [1,2,3]})"
+    ```
+
 ## Architecture
 
 Brain follows a modular architecture:
@@ -113,6 +128,8 @@ npm run typecheck       # Type checking without building
 - ✅ Memory module with tiering
 - ✅ Session management
 - ✅ Basic MCP tools (init, remember, recall, status)
+- ✅ Code execution module with Python/shell support
+- ✅ Execution monitoring integration (Monitex)
 - 🔲 Notes module (next)
 - 🔲 Projects module
 - 🔲 Pattern learning
