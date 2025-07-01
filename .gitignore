@@ -44,3 +44,8 @@ temp/
 # Backup files
 *.bak
 *.backup
+# Video files
+*.webm
+*.mp4
+*.avi
+*.mov
