@@ -1,0 +1,11 @@
+--pre
+--index-url https://download.pytorch.org/whl/nightly/cu128
+torch
+torchvision
+torchaudio
+numpy
+pandas
+scikit-learn
+matplotlib
+jupyter
+transformers
