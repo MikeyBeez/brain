@@ -130,7 +130,7 @@
         }
         
         .language-badge.python {
-            background: #3776AB;
+            background: #5599ff;
             color: #FFD43B;
         }
         
@@ -197,7 +197,7 @@
         }
         
         .execution-toggle {
-            color: #666;
+            color: #999;
             font-size: 20px;
             transition: transform 0.2s;
         }
@@ -224,7 +224,7 @@
         .section-title {
             font-size: 12px;
             text-transform: uppercase;
-            color: #888;
+            color: #aaa;
             margin-bottom: 8px;
             letter-spacing: 0.5px;
         }
@@ -247,7 +247,7 @@
         }
         
         .code-block.python-code {
-            color: #3776AB;
+            color: #66ff66;
         }
         
         .output-block {
@@ -260,14 +260,14 @@
             overflow-x: auto;
             white-space: pre-wrap;
             word-wrap: break-word;
-            color: #0f0;
+            color: #99eeff;
             line-height: 1.5;
         }
         
         .error-block {
             background: #2a0a0a;
             border: 1px solid #633;
-            color: #f66;
+            color: #ff9999;
         }
         
         .execution-meta {
@@ -369,90 +369,82 @@
             }
         }
         
-        async function loadExecutionDetails(executionId) {
-            try {
-                const res = await fetch(`${API_BASE}/api/brain/executions/${executionId}`);
-                const data = await res.json();
-                
-                const detailsDiv = document.getElementById(`details-${executionId}`);
-                if (!detailsDiv || detailsDiv.dataset.loaded === 'true') return;
-                
-                // Find the code and output entries
-                let code = '';
-                let output = '';
-                let errors = '';
-                let language = 'python';
-                
-                for (const entry of data.entries) {
-                    if (entry.type === 'code') {
-                        code = entry.code || '';
-                    }
-                    if (entry.type === 'output') {
-                        const outputText = entry.output || '';
-                        if (outputText.includes('\n\nErrors:\n')) {
-                            const parts = outputText.split('\n\nErrors:\n');
-                            output = parts[0];
-                            errors = parts[1];
-                        } else {
-                            output = outputText;
-                        }
-                    }
-                    if (entry.language) {
-                        language = entry.language;
-                    }
-                }
-                
-                let detailsHtml = '';
-                
-                // Show command for shell executions
-                if (language === 'shell' && code) {
-                    detailsHtml += `
-                        <div class="code-section">
-                            <div class="section-title">Shell Command</div>
-                            <div class="code-block shell-command">${escapeHtml(code)}</div>
-                        </div>
-                    `;
-                } else if (code) {
-                    detailsHtml += `
-                        <div class="code-section">
-                            <div class="section-title">Python Code</div>
-                            <div class="code-block python-code">${escapeHtml(code)}</div>
-                        </div>
-                    `;
-                }
-                
-                if (output) {
-                    detailsHtml += `
-                        <div class="output-section">
-                            <div class="section-title">Output</div>
-                            <div class="output-block">${escapeHtml(output)}</div>
-                        </div>
-                    `;
-                }
-                
-                if (errors) {
-                    detailsHtml += `
-                        <div class="output-section">
-                            <div class="section-title">Errors</div>
-                            <div class="output-block error-block">${escapeHtml(errors)}</div>
-                        </div>
-                    `;
-                }
-                
-                detailsHtml += `
-                    <div class="execution-meta">
-                        <div class="meta-item">📁 ${data.execution_id}</div>
-                        <div class="meta-item">📊 ${data.count} log entries</div>
-                    </div>
-                `;
-                
-                detailsDiv.innerHTML = detailsHtml;
-                detailsDiv.dataset.loaded = 'true';
-                
-            } catch (err) {
-                console.error('Error loading execution details:', err);
-            }
+        // Find and replace the loadExecutionDetails function
+async function loadExecutionDetails(executionId) {
+    try {
+        const res = await fetch(`${API_BASE}/api/brain/executions/${executionId}`);
+        const data = await res.json();
+        
+        const detailsDiv = document.getElementById(`details-${executionId}`);
+        if (!detailsDiv || detailsDiv.dataset.loaded === 'true') return;
+        
+        // Our API returns a flat object, not entries array
+        const code = data.code || '';
+        const output = data.output || '';
+        const errors = data.error || '';
+        const language = data.type || 'python';
+        const executionTime = data.execution_time || 0;
+        
+        // Create the details HTML
+        let detailsHtml = '';
+        
+        // Code section
+        detailsHtml += `
+            <div class="code-section">
+                <div class="section-title">Code</div>
+                <div class="code-block ${language === 'shell' ? 'shell-command' : 'python-code'}">${escapeHtml(code)}</div>
+            </div>
+        `;
+        
+        // Output section
+        if (output) {
+            detailsHtml += `
+                <div class="output-section">
+                    <div class="section-title">Output</div>
+                    <div class="output-block">${escapeHtml(output)}</div>
+                </div>
+            `;
         }
+        
+        // Error section
+        if (errors) {
+            detailsHtml += `
+                <div class="output-section">
+                    <div class="section-title">Errors</div>
+                    <div class="output-block error-block">${escapeHtml(errors)}</div>
+                </div>
+            `;
+        }
+        
+        // Metadata
+        detailsHtml += `
+            <div class="execution-meta">
+                <div class="meta-item">⏱️ ${executionTime}ms</div>
+                <div class="meta-item">🗂️ ${executionId}</div>
+            </div>
+        `;
+        
+        detailsDiv.innerHTML = detailsHtml;
+        detailsDiv.dataset.loaded = 'true';
+        
+    } catch (err) {
+        console.error('Error loading details:', err);
+        const detailsDiv = document.getElementById(`details-${executionId}`);
+        if (detailsDiv) {
+            detailsDiv.innerHTML = `
+                <div style="color: #f44336; text-align: center; padding: 20px;">
+                    Error loading details: ${err.message}
+                </div>
+            `;
+        }
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
         
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -507,7 +499,7 @@
                                 <div class="execution-toggle">▶</div>
                             </div>
                             <div class="execution-details" id="details-${exec.id}" data-loaded="false">
-                                <div style="text-align: center; color: #666; padding: 20px;">
+                                <div style="text-align: center; color: #999; padding: 20px;">
                                     Loading details...
                                 </div>
                             </div>

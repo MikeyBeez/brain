@@ -13,6 +13,9 @@ import { brainRememberTool } from './tools/remember.js';
 import { brainRecallTool } from './tools/recall.js';
 import { brainStatusTool } from './tools/status.js';
 import { brainExecuteTool } from './tools/execute.js';
+import { obsidianNoteTool } from './tools/obsidian.js';
+import { unifiedSearchTool } from './tools/unified_search.js';
+import { brainAnalyzeTool } from './tools/analyze.js';
 import { logger } from './core/database.js';
 
 async function main() {
@@ -30,6 +33,9 @@ async function main() {
     brainServer.registerTool(brainRecallTool);
     brainServer.registerTool(brainStatusTool);
     brainServer.registerTool(brainExecuteTool);
+    brainServer.registerTool(obsidianNoteTool);
+    brainServer.registerTool(unifiedSearchTool);
+    brainServer.registerTool(brainAnalyzeTool);
     
     // Initialize modules
     logger.info('Initializing modules...');
@@ -47,6 +53,9 @@ async function main() {
     logger.info('  - brain_recall - Search through memories');
     logger.info('  - brain_status - Check system status');
     logger.info('  - brain_execute - Execute Python code with full system access');
+    logger.info('  - obsidian_note - CRUD operations for Obsidian notes');
+    logger.info('  - unified_search - Search across Brain and Obsidian');
+    logger.info('  - brain_analyze - Analyze vault for insights and connections');
     
   } catch (error) {
     logger.error('Failed to start Brain MCP Server', error);
